@@ -142,14 +142,14 @@ Exemplo de saida:
 [15:30:45] [web] DEBUG: cache hit {"key":"user:42"}
 ```
 
-## Melhorias v2.0
+## Características da Versão 0.1.0
 
-### Novo: Timestamps com Módulo Date (Interno)
+### Timestamps com Módulo Date (Interno)
 - Formatação flexível com tokens `YYYY-MM-DD HH:mm:ss`
 - Suporte a ISO, curto, personalizado
 - Usa o módulo `date` interno da linguagem (não requer dependência externa)
 
-### Nova API: `setTimestampFormat()`
+### API: `setTimestampFormat()`
 ```js
 log.setTimestampFormat("YYYY-MM-DD HH:mm:ss")
 log.setTimestampFormat("HH:mm:ss")
@@ -161,7 +161,6 @@ log.setTimestampFormat("MM/DD/YYYY")
 - Logs para desenvolvimento (formato curto)
 - Logs para auditoria (formato completo)
 
-### Compatibilidade
-- Mantida 100% compatibilidade com API existente
+### Configurações Disponíveis
 - Formato padrão: `"YYYY-MM-DD HH:mm:ss"`
 - Funciona com todas as outras opções (cores, labels, etc.)
