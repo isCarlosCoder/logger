@@ -1,0 +1,96 @@
+# Testes para níveis de log
+import "../src/main.fig"
+use "figtest"
+
+figtest.describe("Níveis de Log", fn() {
+    figtest.beforeEach(fn() {
+        setLevel("info")
+        enableTimestamp(false)
+        enableColor(false)
+        enableUppercase(true)
+        clearLabel()
+    })
+
+    figtest.test("nível trace habilitado", fn() {
+        setLevel("trace")
+        let output = format("trace", "trace message", null)
+        figtest.assertContains(output, "TRACE: trace message")
+    })
+
+    figtest.test("nível debug habilitado", fn() {
+        setLevel("debug")
+        let output = format("debug", "debug message", null)
+        figtest.assertContains(output, "DEBUG: debug message")
+    })
+
+    figtest.test("nível info habilitado", fn() {
+        setLevel("info")
+        let output = format("info", "info message", null)
+        figtest.assertContains(output, "INFO: info message")
+    })
+
+    figtest.test("nível warn habilitado", fn() {
+        setLevel("warn")
+        let output = format("warn", "warn message", null)
+        figtest.assertContains(output, "WARN: warn message")
+    })
+
+    figtest.test("nível error habilitado", fn() {
+        setLevel("error")
+        let output = format("error", "error message", null)
+        figtest.assertContains(output, "ERROR: error message")
+    })
+
+    figtest.test("nível fatal habilitado", fn() {
+        setLevel("fatal")
+        let output = format("fatal", "fatal message", null)
+        figtest.assertContains(output, "FATAL: fatal message")
+    })
+
+    figtest.test("filtro por nível - trace não mostra debug", fn() {
+        setLevel("trace")
+        let debug_output = format("debug", "debug message", null)
+        let trace_output = format("trace", "trace message", null)
+        
+        figtest.assertContains(debug_output, "DEBUG: debug message")
+        figtest.assertContains(trace_output, "TRACE: trace message")
+    })
+
+    figtest.test("filtro por nível - info não mostra debug", fn() {
+        setLevel("info")
+        let debug_output = format("debug", "debug message", null)
+        let info_output = format("info", "info message", null)
+        
+        # Debug não deve aparecer (nível mais baixo)
+        figtest.assertEq(debug_output, null)
+        figtest.assertContains(info_output, "INFO: info message")
+    })
+
+    figtest.test("filtro por nível - error não mostra warn", fn() {
+        setLevel("error")
+        let warn_output = format("warn", "warn message", null)
+        let error_output = format("error", "error message", null)
+        
+        # Warn não deve aparecer (nível mais baixo)
+        figtest.assertEq(warn_output, null)
+        figtest.assertContains(error_output, "ERROR: error message")
+    })
+
+    figtest.test("getLevel retorna nível atual", fn() {
+        setLevel("debug")
+        figtest.assertEq(getLevel(), "debug")
+        
+        setLevel("warn")
+        figtest.assertEq(getLevel(), "warn")
+    })
+
+    figtest.test("isEnabled verifica corretamente", fn() {
+        setLevel("warn")
+        
+        figtest.assert(!isEnabled("trace"))  # trace < warn
+        figtest.assert(!isEnabled("debug"))  # debug < warn
+        figtest.assert(isEnabled("warn"))    # warn == warn
+        figtest.assert(isEnabled("error"))   # error > warn
+        figtest.assert(isEnabled("fatal"))   # fatal > warn
+    })
+})

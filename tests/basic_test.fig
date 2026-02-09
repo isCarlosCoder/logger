@@ -1,0 +1,54 @@
+# Teste básico que deve funcionar
+import "../src/main.fig"
+use "figtest"
+
+figtest.describe("Funcionalidades Básicas", fn() {
+    figtest.test("formatação simples", fn() {
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)
+        clearLabel()
+        setLevel("info")
+        
+        let output = format("info", "hello world", null)
+        figtest.assertContains(output, "INFO: hello world")
+        figtest.assertContains(output, "[2026-")
+    })
+
+    figtest.test("setTimestampFormat funciona", fn() {
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)
+        clearLabel()
+        setLevel("info")
+        
+        setTimestampFormat("HH:mm")
+        let output = format("info", "test", null)
+        figtest.assertContains(output, "INFO: test")
+        figtest.assert(strings.contains(output, ":"))
+    })
+
+    figtest.test("setLabel funciona", fn() {
+        enableTimestamp(false)
+        enableColor(false)
+        enableUppercase(true)
+        setLabel("test")
+        setLevel("info")
+        
+        let output = format("info", "message", null)
+        figtest.assertContains(output, "[test] INFO: message")
+    })
+
+    figtest.test("contexto JSON", fn() {
+        enableTimestamp(false)
+        enableColor(false)
+        enableUppercase(true)
+        clearLabel()
+        setLevel("info")
+        
+        let context = {key: "value"}
+        let output = format("info", "test", context)
+        figtest.assertContains(output, "INFO: test")
+        figtest.assertContains(output, "\"key\":\"value\"")
+    })
+})

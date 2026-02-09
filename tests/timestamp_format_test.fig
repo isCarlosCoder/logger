@@ -1,0 +1,110 @@
+# Testes para formatação de timestamps
+import "../src/main.fig"
+use "figtest"
+
+figtest.describe("Formatação de Timestamps", fn() {
+    figtest.beforeEach(fn() {
+        # Reset para formato padrão antes de cada teste
+        setTimestampFormat("YYYY-MM-DD HH:mm:ss")
+    })
+
+    figtest.test("formato padrão ISO", fn() {
+        setTimestampFormat("YYYY-MM-DD HH:mm:ss")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let output = format("info", "test message", null)
+        figtest.assertContains(output, "2026-")
+        figtest.assertContains(output, "INFO: test message")
+    })
+
+    figtest.test("formato ISO completo", fn() {
+        setTimestampFormat("YYYY-MM-DDTHH:mm:ss")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let output = format("info", "test message", null)
+        figtest.assertContains(output, "2026-02-09T")
+        figtest.assertContains(output, "INFO: test message")
+    })
+
+    figtest.test("formato curto", fn() {
+        setTimestampFormat("HH:mm:ss")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let output = format("info", "test message", null)
+        # Verifica se contém padrão de hora HH:mm:ss
+        figtest.assert(strings.len(output) >= 15) # [HH:mm:ss] INFO: test message
+        figtest.assertContains(output, "INFO: test message")
+    })
+
+    figtest.test("formato americano", fn() {
+        setTimestampFormat("MM/DD/YYYY HH:mm")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let output = format("info", "test message", null)
+        figtest.assertContains(output, "02/09/2026")
+        figtest.assertContains(output, "INFO: test message")
+    })
+
+    figtest.test("timestamp desabilitado", fn() {
+        enableTimestamp(false)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let output = format("info", "test message", null)
+        figtest.assertEq(output, "INFO: test message")
+    })
+
+    figtest.test("com label", fn() {
+        setTimestampFormat("YYYY-MM-DD HH:mm:ss")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        setLabel("api")
+        
+        let output = formatWithLabel("info", "test message", null, "api")
+        figtest.assertContains(output, "[api]")
+        figtest.assertContains(output, "INFO: test message")
+    })
+
+    figtest.test("com contexto JSON", fn() {
+        setTimestampFormat("YYYY-MM-DD HH:mm:ss")
+        enableTimestamp(true)
+        enableColor(false)
+        enableUppercase(true)  
+        clearLabel()
+        
+        let context = {user: "carlos", id: 42}
+        let output = format("info", "test message", context)
+        figtest.assertContains(output, "INFO: test message")
+        figtest.assertContains(output, "\"user\":\"carlos\"")
+        figtest.assertContains(output, "\"id\":42")
+    })
+
+    figtest.test("cores ativadas", fn() {
+        setTimestampFormat("YYYY-MM-DD HH:mm:ss")
+        enableTimestamp(true)
+        enableColor(true)
+        enableUppercase(true)
+        clearLabel()
+        
+        let output = format("error", "request failed", {status: 500})
+        figtest.assertContains(output, "[2026-")  # timestamp
+        figtest.assertContains(output, "ERROR: request failed")  # nível maiúsculo
+        figtest.assertContains(output, "\x1b[31m")  # cor vermelha para error
+        figtest.assertContains(output, "\x1b[0m")  # reset de cor
+        figtest.assertContains(output, "{\"status\":500}")  # contexto
+    })
+})

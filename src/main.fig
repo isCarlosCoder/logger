@@ -1,6 +1,7 @@
 use "json"
 use "strings"
 use "system"
+use "date"
 
 let _levelName = "info"
 let _levelValue = 30
@@ -8,6 +9,7 @@ let _showTimestamp = true
 let _useColor = false
 let _useUppercase = true
 let _label = ""
+let _timestampFormat = "YYYY-MM-DD HH:mm:ss"
 
 let _colorReset = "\x1b[0m"
 
@@ -43,7 +45,8 @@ fn _colorFor(name) {
 
 fn _formatTimestamp() {
 	if (!_showTimestamp) { return "" }
-	return "[" + system.now() + "] "
+	let agora = date.now()
+	return "[" + date.format(agora, _timestampFormat) + "] "
 }
 
 fn _formatLabel(labelOverride) {
@@ -85,6 +88,7 @@ fn formatWithLabel(level, message, context, labelOverride) {
 }
 
 fn format(level, message, context) {
+	if (!_shouldLog(level)) { return null }
 	return formatWithLabel(level, message, context, null)
 }
 
@@ -121,16 +125,35 @@ fn enableColor(enabled) { _useColor = enabled }
 fn enableUppercase(enabled) { _useUppercase = enabled }
 fn setLabel(label) { _label = label }
 fn clearLabel() { _label = "" }
+fn setTimestampFormat(format) { _timestampFormat = format }
 
 fn withLabel(label) {
 	return {
 		label: label,
-		trace: fn(message, context) { logWithLabel("trace", message, context, label) },
-		debug: fn(message, context) { logWithLabel("debug", message, context, label) },
-		info: fn(message, context) { logWithLabel("info", message, context, label) },
-		warn: fn(message, context) { logWithLabel("warn", message, context, label) },
-		error: fn(message, context) { logWithLabel("error", message, context, label) },
-		fatal: fn(message, context) { logWithLabel("fatal", message, context, label) }
+		trace: fn(message, context) { 
+			if (!_shouldLog("trace")) { return null }
+			return formatWithLabel("trace", message, context, label) 
+		},
+		debug: fn(message, context) { 
+			if (!_shouldLog("debug")) { return null }
+			return formatWithLabel("debug", message, context, label) 
+		},
+		info: fn(message, context) { 
+			if (!_shouldLog("info")) { return null }
+			return formatWithLabel("info", message, context, label) 
+		},
+		warn: fn(message, context) { 
+			if (!_shouldLog("warn")) { return null }
+			return formatWithLabel("warn", message, context, label) 
+		},
+		error: fn(message, context) { 
+			if (!_shouldLog("error")) { return null }
+			return formatWithLabel("error", message, context, label) 
+		},
+		fatal: fn(message, context) { 
+			if (!_shouldLog("fatal")) { return null }
+			return formatWithLabel("fatal", message, context, label) 
+		}
 	}
 }
 
@@ -168,14 +191,29 @@ if (system.env("FIG_LOGGER_DEMO") == "1") {
 	enableUppercase(true)
 	setLevel("trace")
 	setLabel("auth")
-
+	
+	# Demo com formato padrão
 	trace("trace message", {phase: "boot"})
 	debug("debug message", {user: "carlos"})
 	info("user login", {id: 42, role: "admin"})
 	warn("token expiring", {days: 2})
 	error("request failed", {status: 500})
 
+	# Demo com formato ISO
+	print("\n--- Demo com formato ISO ---")
+	setTimestampFormat("YYYY-MM-DDTHH:mm:ss")
+	setLabel("api")
+	
 	let api = withLabel("api")
 	api.info("request ok", {path: "/v1/health"})
 	api.warn("rate limit", {limit: 100})
+	
+	# Demo com formato curto
+	print("\n--- Demo com formato curto ---")
+	setTimestampFormat("HH:mm:ss")
+	setLabel("web")
+	
+	let web = withLabel("web")
+	web.info("page view", {url: "/home", ref: "google"})
+	web.debug("cache hit", {key: "user:42"})
 }

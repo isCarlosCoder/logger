@@ -1,0 +1,113 @@
+# Testes para labels e withLabel
+import "../src/main.fig"
+use "figtest"
+
+figtest.describe("Labels e withLabel", fn() {
+    figtest.beforeEach(fn() {
+        setLevel("info")
+        enableTimestamp(false)
+        enableColor(false)
+        enableUppercase(false)
+        clearLabel()
+    })
+
+    figtest.test("setLabel define label global", fn() {
+        setLabel("api")
+        let output = format("info", "test message", null)
+        figtest.assertContains(output, "[api]")
+        figtest.assertContains(output, "info: test message")
+    })
+
+    figtest.test("clearLabel remove label", fn() {
+        setLabel("api")
+        clearLabel()
+        let output = format("info", "test message", null)
+        figtest.assertContains(output, "info: test message")
+        figtest.assert(!strings.contains(output, "["))
+    })
+
+    figtest.test("withLabel cria logger independente", fn() {
+        clearLabel()
+        
+        let main = format("info", "main message", null)
+        let api = withLabel("api")
+        let api_output = api.info("api message", null)
+        
+        # Main não deve ter label
+        figtest.assertContains(main, "info: main message")
+        figtest.assert(!strings.contains(main, "["))
+        # API deve ter label
+        figtest.assertContains(api_output, "[api]")
+        figtest.assertContains(api_output, "info: api message")
+    })
+
+    figtest.test("múltiplos labels independentes", fn() {
+        clearLabel()
+        
+        let api = withLabel("api")
+        let db = withLabel("database")
+        let web = withLabel("web")
+        
+        let api_output = api.info("api message", null)
+        let db_output = db.warn("db warning", null)
+        let web_output = web.error("web error", null)
+        
+        figtest.assertContains(api_output, "[api]")
+        figtest.assertContains(api_output, "info: api message")
+        figtest.assertContains(db_output, "[database]")
+        figtest.assertContains(db_output, "warn: db warning")
+        figtest.assertContains(web_output, "[web]")
+        figtest.assertContains(web_output, "error: web error")
+    })
+
+    figtest.test("withLabel com contexto", fn() {
+        clearLabel()
+        
+        let api = withLabel("api")
+        let context = {endpoint: "/users", method: "GET"}
+        let output = api.info("request", context)
+        
+        figtest.assertContains(output, "[api]")
+        figtest.assertContains(output, "info: request")
+        figtest.assertContains(output, "\"endpoint\":\"/users\"")
+    })
+
+    figtest.test("label override em formatWithLabel", fn() {
+        clearLabel()
+        
+        let global_output = formatWithLabel("info", "global", null, "global")
+        let override_output = formatWithLabel("info", "override", null, "override")
+        
+        figtest.assertContains(global_output, "[global]")
+        figtest.assertContains(global_output, "info: global")
+        figtest.assertContains(override_output, "[override]")
+        figtest.assertContains(override_output, "info: override")
+    })
+
+    figtest.test("label persiste entre chamadas", fn() {
+        setLabel("persistent")
+        
+        let output1 = format("info", "message 1", null)
+        let output2 = format("warn", "message 2", null)
+        
+        figtest.assertContains(output1, "[persistent]")
+        figtest.assertContains(output1, "info: message 1")
+        figtest.assertContains(output2, "[persistent]")
+        figtest.assertContains(output2, "warn: message 2")
+    })
+
+    figtest.test("withLabel não afeta global", fn() {
+        clearLabel()
+        
+        let api = withLabel("api")
+        let api_output = api.info("api message", null)
+        let global_output = format("info", "global message", null)
+        
+        # API tem label
+        figtest.assertContains(api_output, "[api]")
+        figtest.assertContains(api_output, "info: api message")
+        # Global não tem label
+        figtest.assertContains(global_output, "info: global message")
+        figtest.assert(!strings.contains(global_output, "["))
+    })
+})
