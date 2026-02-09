@@ -1,0 +1,11 @@
+[project]
+name = 'logger'
+version = '0.1.0'
+description = 'Logging utilities for Fig'
+type = 'library'
+main = 'src/main.fig'
+
+[authors]
+name = 'isCarlosCoder'
+
+[dependencies]

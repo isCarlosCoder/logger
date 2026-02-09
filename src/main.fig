@@ -1,0 +1,181 @@
+use "json"
+use "strings"
+use "system"
+
+let _levelName = "info"
+let _levelValue = 30
+let _showTimestamp = true
+let _useColor = false
+let _useUppercase = true
+let _label = ""
+
+let _colorReset = "\x1b[0m"
+
+fn _assert(condition, message) {
+	if (!condition) {
+		if (message == null || message == "") {
+			message = "assertion failed"
+		}
+		print("logger assert: " + message)
+		system.exit(1)
+	}
+}
+
+fn _levelValueFor(name) {
+	if (name == "trace") { return 10 }
+	if (name == "debug") { return 20 }
+	if (name == "info") { return 30 }
+	if (name == "warn") { return 40 }
+	if (name == "error") { return 50 }
+	if (name == "fatal") { return 60 }
+	return -1
+}
+
+fn _colorFor(name) {
+	if (name == "trace") { return "\x1b[90m" }
+	if (name == "debug") { return "\x1b[36m" }
+	if (name == "info") { return "\x1b[32m" }
+	if (name == "warn") { return "\x1b[33m" }
+	if (name == "error") { return "\x1b[31m" }
+	if (name == "fatal") { return "\x1b[35m" }
+	return ""
+}
+
+fn _formatTimestamp() {
+	if (!_showTimestamp) { return "" }
+	return "[" + system.now() + "] "
+}
+
+fn _formatLabel(labelOverride) {
+	let lbl = labelOverride
+	if (lbl == null || lbl == "") {
+		lbl = _label
+	}
+	if (lbl == null || lbl == "") { return "" }
+	return "[" + lbl + "] "
+}
+
+fn _formatLevel(level) {
+	if (_useUppercase) {
+		return strings.upper(level)
+	}
+	return level
+}
+
+fn _formatContext(context) {
+	if (context == null) { return "" }
+	return " " + json.stringify(context)
+}
+
+fn _applyColor(level, line) {
+	if (!_useColor) { return line }
+	let code = _colorFor(level)
+	if (code == "") { return line }
+	return code + line + _colorReset
+}
+
+fn _shouldLog(level) {
+	let lvl = _levelValueFor(level)
+	return lvl >= _levelValue
+}
+
+fn formatWithLabel(level, message, context, labelOverride) {
+	let line = _formatTimestamp() + _formatLabel(labelOverride) + _formatLevel(level) + ": " + message + _formatContext(context)
+	return _applyColor(level, line)
+}
+
+fn format(level, message, context) {
+	return formatWithLabel(level, message, context, null)
+}
+
+fn logWithLabel(level, message, context, labelOverride) {
+	if (!_shouldLog(level)) { return null }
+	print(formatWithLabel(level, message, context, labelOverride))
+}
+
+fn log(level, message, context) {
+	logWithLabel(level, message, context, null)
+}
+
+fn trace(message, context) { log("trace", message, context) }
+fn debug(message, context) { log("debug", message, context) }
+fn info(message, context) { log("info", message, context) }
+fn warn(message, context) { log("warn", message, context) }
+fn error(message, context) { log("error", message, context) }
+fn fatal(message, context) {
+	log("fatal", message, context)
+	system.exit(1)
+}
+
+fn setLevel(name) {
+	let lvl = _levelValueFor(name)
+	_assert(lvl != -1, "invalid level: " + name)
+	_levelName = name
+	_levelValue = lvl
+}
+
+fn getLevel() { return _levelName }
+fn isEnabled(level) { return _shouldLog(level) }
+fn enableTimestamp(enabled) { _showTimestamp = enabled }
+fn enableColor(enabled) { _useColor = enabled }
+fn enableUppercase(enabled) { _useUppercase = enabled }
+fn setLabel(label) { _label = label }
+fn clearLabel() { _label = "" }
+
+fn withLabel(label) {
+	return {
+		label: label,
+		trace: fn(message, context) { logWithLabel("trace", message, context, label) },
+		debug: fn(message, context) { logWithLabel("debug", message, context, label) },
+		info: fn(message, context) { logWithLabel("info", message, context, label) },
+		warn: fn(message, context) { logWithLabel("warn", message, context, label) },
+		error: fn(message, context) { logWithLabel("error", message, context, label) },
+		fatal: fn(message, context) { logWithLabel("fatal", message, context, label) }
+	}
+}
+
+fn runTests() {
+	enableTimestamp(false)
+	enableColor(false)
+	enableUppercase(true)
+	setLevel("info")
+	clearLabel()
+
+	let line = format("info", "hello", null)
+	_assert(line == "INFO: hello", "format basic")
+
+	let line2 = formatWithLabel("info", "hello", null, "svc")
+	_assert(line2 == "[svc] INFO: hello", "format label")
+
+	setLevel("warn")
+	_assert(isEnabled("error"), "enabled error")
+	_assert(!isEnabled("info"), "disabled info")
+
+	setLevel("debug")
+	let line3 = format("debug", "data", {a: 1})
+	_assert(line3 == "DEBUG: data {\"a\":1}", "format context")
+
+	print("logger tests ok")
+}
+
+if (system.env("FIG_LOGGER_TEST") == "1") {
+	runTests()
+}
+
+if (system.env("FIG_LOGGER_DEMO") == "1") {
+	enableTimestamp(true)
+	enableColor(true)
+	enableUppercase(true)
+	setLevel("trace")
+	setLabel("auth")
+
+	trace("trace message", {phase: "boot"})
+	debug("debug message", {user: "carlos"})
+	info("user login", {id: 42, role: "admin"})
+	warn("token expiring", {days: 2})
+	error("request failed", {status: 500})
+
+	let api = withLabel("api")
+	api.info("request ok", {path: "/v1/health"})
+	api.warn("rate limit", {limit: 100})
+}
