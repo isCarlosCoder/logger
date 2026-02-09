@@ -1,6 +1,6 @@
-# Logger (Fig)
+# Logger (Fig) v0.1.0
 
-Modulo de logging para projetos Fig, com niveis, contexto em JSON, labels, cores e **timestamps formatados com o módulo date**.
+Módulo de logging para projetos Fig, com níveis, contexto em JSON, labels, cores e **timestamps formatados com o módulo date (interno da linguagem)**.
 
 ## Instalar no projeto
 
@@ -52,7 +52,7 @@ log.info("request", {path: "/health"})
 
 ## Formatos de Timestamp
 
-**NOVO:** Agora com suporte a formatos personalizados usando o módulo `date`:
+**NOVO:** Agora com suporte a formatos personalizados usando o módulo `date` (interno da linguagem):
 
 ```js
 # Formato padrão (ISO)
@@ -144,10 +144,10 @@ Exemplo de saida:
 
 ## Melhorias v2.0
 
-### Novo: Timestamps com Módulo Date
+### Novo: Timestamps com Módulo Date (Interno)
 - Formatação flexível com tokens `YYYY-MM-DD HH:mm:ss`
 - Suporte a ISO, curto, personalizado
-- Substituição do `system.now()` por `date.format()`
+- Usa o módulo `date` interno da linguagem (não requer dependência externa)
 
 ### Nova API: `setTimestampFormat()`
 ```js
