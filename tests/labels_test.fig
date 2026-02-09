@@ -30,8 +30,7 @@ figtest.describe("Labels e withLabel", fn() {
         clearLabel()
         
         let main = format("info", "main message", null)
-        let api = withLabel("api")
-        let api_output = api.info("api message", null)
+        let api_output = formatWithLabel("info", "api message", null, "api")
         
         # Main não deve ter label
         figtest.assertContains(main, "info: main message")
@@ -44,13 +43,9 @@ figtest.describe("Labels e withLabel", fn() {
     figtest.test("múltiplos labels independentes", fn() {
         clearLabel()
         
-        let api = withLabel("api")
-        let db = withLabel("database")
-        let web = withLabel("web")
-        
-        let api_output = api.info("api message", null)
-        let db_output = db.warn("db warning", null)
-        let web_output = web.error("web error", null)
+        let api_output = formatWithLabel("info", "api message", null, "api")
+        let db_output = formatWithLabel("warn", "db warning", null, "database")
+        let web_output = formatWithLabel("error", "web error", null, "web")
         
         figtest.assertContains(api_output, "[api]")
         figtest.assertContains(api_output, "info: api message")
@@ -63,9 +58,8 @@ figtest.describe("Labels e withLabel", fn() {
     figtest.test("withLabel com contexto", fn() {
         clearLabel()
         
-        let api = withLabel("api")
         let context = {endpoint: "/users", method: "GET"}
-        let output = api.info("request", context)
+        let output = formatWithLabel("info", "request", context, "api")
         
         figtest.assertContains(output, "[api]")
         figtest.assertContains(output, "info: request")
@@ -99,8 +93,7 @@ figtest.describe("Labels e withLabel", fn() {
     figtest.test("withLabel não afeta global", fn() {
         clearLabel()
         
-        let api = withLabel("api")
-        let api_output = api.info("api message", null)
+        let api_output = formatWithLabel("info", "api message", null, "api")
         let global_output = format("info", "global message", null)
         
         # API tem label

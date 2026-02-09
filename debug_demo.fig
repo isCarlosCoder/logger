@@ -1,0 +1,24 @@
+import "src/main.fig"
+
+print("=== Debug Demo ===")
+setLevel("trace")
+enableTimestamp(true)
+enableColor(true)
+enableUppercase(true)
+setTimestampFormat("YYYY-MM-DDTHH:mm:ss")
+setLabel("api")
+
+print("Nível atual: " + getLevel())
+print("isEnabled(info): " + isEnabled("info"))
+print("isEnabled(warn): " + isEnabled("warn"))
+
+let api = withLabel("api")
+print("api object: " + api)
+
+# Teste direto
+let direct = format("info", "direct test", null)
+print("Direct format: " + direct)
+
+# Teste com withLabel
+let with_label = api.info("withLabel test", {test: true})
+print("withLabel result: " + with_label)

@@ -130,30 +130,12 @@ fn setTimestampFormat(format) { _timestampFormat = format }
 fn withLabel(label) {
 	return {
 		label: label,
-		trace: fn(message, context) { 
-			if (!_shouldLog("trace")) { return null }
-			return formatWithLabel("trace", message, context, label) 
-		},
-		debug: fn(message, context) { 
-			if (!_shouldLog("debug")) { return null }
-			return formatWithLabel("debug", message, context, label) 
-		},
-		info: fn(message, context) { 
-			if (!_shouldLog("info")) { return null }
-			return formatWithLabel("info", message, context, label) 
-		},
-		warn: fn(message, context) { 
-			if (!_shouldLog("warn")) { return null }
-			return formatWithLabel("warn", message, context, label) 
-		},
-		error: fn(message, context) { 
-			if (!_shouldLog("error")) { return null }
-			return formatWithLabel("error", message, context, label) 
-		},
-		fatal: fn(message, context) { 
-			if (!_shouldLog("fatal")) { return null }
-			return formatWithLabel("fatal", message, context, label) 
-		}
+		trace: fn(message, context) { logWithLabel("trace", message, context, label) },
+		debug: fn(message, context) { logWithLabel("debug", message, context, label) },
+		info: fn(message, context) { logWithLabel("info", message, context, label) },
+		warn: fn(message, context) { logWithLabel("warn", message, context, label) },
+		error: fn(message, context) { logWithLabel("error", message, context, label) },
+		fatal: fn(message, context) { logWithLabel("fatal", message, context, label) }
 	}
 }
 
