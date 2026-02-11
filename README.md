@@ -7,19 +7,19 @@ Módulo de logging para projetos Fig, com níveis, contexto em JSON, labels, cor
 No seu projeto Fig:
 
 ```bash
-fig install isCarlosCoder/logger
+fig install logger
 ```
 
 ## Importar
 
 ```js
-import "mod:isCarlosCoder/logger" log
+import "mod:logger" log
 ```
 
 ## Uso basico
 
 ```js
-import "mod:isCarlosCoder/logger" log
+import "mod:logger" log
 
 log.info("app started", {port: 3000})
 log.warn("cache miss", {key: "user:42"})
@@ -38,7 +38,7 @@ log.error("db error", {code: "ECONNRESET"})
 ## Configuracao
 
 ```js
-import "mod:isCarlosCoder/logger" log
+import "mod:logger" log
 
 log.setLevel("debug")
 log.enableTimestamp(true)
@@ -83,7 +83,7 @@ log.setTimestampFormat("MM/DD/YYYY HH:mm")
 ## Logger com label
 
 ```js
-import "mod:isCarlosCoder/logger" log
+import "mod:logger" log
 
 let api = log.withLabel("api")
 api.info("ready")
